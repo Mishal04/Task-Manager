@@ -27,20 +27,31 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
     return name.split(" ").map((n) => n[0]).join("").toUpperCase().substring(0, 2);
   };
 
-  const sidebarBg = theme === "dark" ? "#060b18" : "#ffffff";
+  const handleNavClick = (id) => {
+    setActiveTab(id);
+    // Close sidebar on mobile after clicking navigation item
+    if (window.innerWidth < 1024 && onClose) {
+      onClose();
+    }
+  };
+
+  const sidebarBg   = theme === "dark" ? "#060b18" : "#ffffff";
   const borderColor = theme === "dark" ? "rgba(99,102,241,0.1)" : "#f1f5f9";
 
-  const SidebarContent = () => (
+  const makeContent = () => (
     <div style={{ height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
       {/* Header */}
       <div>
-        <div style={{ padding: "24px", borderBottom: `1px solid ${borderColor}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{
+          padding: "24px", borderBottom: `1px solid ${borderColor}`,
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+        }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{
               width: "40px", height: "40px", borderRadius: "14px", flexShrink: 0,
               background: "linear-gradient(135deg, #6366f1, #a855f7)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(99,102,241,0.4)"
+              boxShadow: "0 4px 12px rgba(99,102,241,0.4)",
             }}>
               <FaRocket style={{ color: "#fff", fontSize: "16px" }} />
             </div>
@@ -53,15 +64,22 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
               </div>
             </div>
           </div>
-          {onClose && (
-            <button onClick={onClose} style={{
+
+          {/* Close button (✕) */}
+          <button
+            onClick={onClose}
+            aria-label="Close sidebar"
+            className="sidebar-close-btn"
+            style={{
               padding: "8px", borderRadius: "10px", border: "none", cursor: "pointer",
               background: theme === "dark" ? "rgba(255,255,255,0.05)" : "#f1f5f9",
-              color: "var(--text-muted)", display: "flex"
-            }}>
-              <FaTimes />
-            </button>
-          )}
+              color: "var(--text-muted)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              transition: "all 0.2s ease",
+            }}
+          >
+            <FaTimes style={{ fontSize: "13px" }} />
+          </button>
         </div>
 
         {/* User Profile Card */}
@@ -70,14 +88,14 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
             margin: "16px", padding: "14px", borderRadius: "16px",
             background: theme === "dark" ? "rgba(99,102,241,0.07)" : "linear-gradient(135deg, #faf5ff, #f0f9ff)",
             border: `1px solid ${theme === "dark" ? "rgba(99,102,241,0.12)" : "#e9d5ff"}`,
-            display: "flex", alignItems: "center", gap: "12px"
+            display: "flex", alignItems: "center", gap: "12px",
           }}>
             <div style={{
               width: "40px", height: "40px", borderRadius: "12px", flexShrink: 0,
               background: "linear-gradient(135deg, #6366f1, #a855f7)",
               display: "flex", alignItems: "center", justifyContent: "center",
               color: "#fff", fontWeight: 800, fontSize: "14px",
-              boxShadow: "0 4px 10px rgba(99,102,241,0.3)"
+              boxShadow: "0 4px 10px rgba(99,102,241,0.3)",
             }}>
               {getInitials(user.name)}
             </div>
@@ -99,19 +117,15 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
             return (
               <button
                 key={item.id}
-                onClick={() => { setActiveTab(item.id); if (onClose) onClose(); }}
+                onClick={() => handleNavClick(item.id)}
                 style={{
                   position: "relative", width: "100%", display: "flex", alignItems: "center", gap: "14px",
                   padding: "13px 16px", borderRadius: "14px", border: "none", cursor: "pointer",
-                  background: isActive
-                    ? `linear-gradient(135deg, ${item.accent}22, ${item.accent}11)`
-                    : "transparent",
+                  background: isActive ? `linear-gradient(135deg, ${item.accent}22, ${item.accent}11)` : "transparent",
                   borderLeft: isActive ? `3px solid ${item.accent}` : "3px solid transparent",
                   color: isActive ? item.accent : "var(--text-secondary)",
-                  fontWeight: isActive ? 700 : 600,
-                  fontSize: "14px",
-                  transition: "all 0.2s ease",
-                  textAlign: "left",
+                  fontWeight: isActive ? 700 : 600, fontSize: "14px",
+                  transition: "all 0.2s ease", textAlign: "left",
                 }}
                 onMouseEnter={(e) => { if (!isActive) { e.currentTarget.style.background = theme === "dark" ? "rgba(255,255,255,0.04)" : "#f8fafc"; e.currentTarget.style.color = "var(--text-primary)"; }}}
                 onMouseLeave={(e) => { if (!isActive) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "var(--text-secondary)"; }}}
@@ -119,10 +133,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
                 <span style={{ fontSize: "16px" }}>{item.icon}</span>
                 <span>{item.label}</span>
                 {isActive && (
-                  <span style={{
-                    marginLeft: "auto", width: "6px", height: "6px", borderRadius: "50%",
-                    background: item.accent, boxShadow: `0 0 6px ${item.accent}`
-                  }} />
+                  <span style={{ marginLeft: "auto", width: "6px", height: "6px", borderRadius: "50%", background: item.accent, boxShadow: `0 0 6px ${item.accent}` }} />
                 )}
               </button>
             );
@@ -139,7 +150,7 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
             width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
             padding: "12px", borderRadius: "14px", border: "1.5px solid rgba(239,68,68,0.3)",
             background: "rgba(239,68,68,0.06)", color: "#ef4444", fontWeight: 700, fontSize: "14px",
-            cursor: "pointer", transition: "all 0.2s ease"
+            cursor: "pointer", transition: "all 0.2s ease",
           }}
           onMouseEnter={(e) => { e.currentTarget.style.background = "#ef4444"; e.currentTarget.style.color = "#fff"; }}
           onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.06)"; e.currentTarget.style.color = "#ef4444"; }}
@@ -152,39 +163,58 @@ function Sidebar({ activeTab, setActiveTab, isOpen, onClose }) {
 
   return (
     <>
-      {/* Desktop Permanent Sidebar */}
-      <aside style={{
-        width: "270px", minHeight: "100vh", background: sidebarBg, flexShrink: 0,
-        borderRight: `1px solid ${borderColor}`, display: "none", transition: "background 0.4s ease"
-      }}
-        className="lg:!block"
-      >
-        <SidebarContent />
-      </aside>
-
-      {/* Mobile Drawer */}
+      {/* ── Desktop permanent sidebar ── animates in/out of layout */}
       <AnimatePresence>
         {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }}
-              onClick={onClose}
-              style={{ position: "fixed", inset: 0, background: "#000", zIndex: 40 }}
-              className="lg:hidden"
-            />
-            <motion.aside
-              initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
-              transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
-              style={{
-                position: "fixed", top: 0, bottom: 0, left: 0, width: "270px",
-                background: sidebarBg, zIndex: 50, display: "flex", flexDirection: "column",
-                boxShadow: "4px 0 30px rgba(0,0,0,0.3)", transition: "background 0.4s ease"
-              }}
-              className="lg:hidden"
-            >
-              <SidebarContent />
-            </motion.aside>
-          </>
+          <motion.aside
+            key="desktop-sidebar"
+            initial={{ width: 0, opacity: 0 }}
+            animate={{ width: 270, opacity: 1 }}
+            exit={{ width: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 280, damping: 30 }}
+            style={{
+              minHeight: "100vh", background: sidebarBg, flexShrink: 0, overflow: "hidden",
+              borderRight: `1px solid ${borderColor}`, display: "none",
+            }}
+            className="lg:!block"
+          >
+            {/* fixed width wrapper keeps content solid during animation */}
+            <div style={{ width: 270, height: "100%" }}>
+              {makeContent()}
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+
+      {/* ── Mobile sliding drawer (direct children of AnimatePresence for exit animations) ── */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            key="mobile-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.5 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            style={{ position: "fixed", inset: 0, background: "#000", zIndex: 40 }}
+            className="lg:hidden"
+          />
+        )}
+        {isOpen && (
+          <motion.aside
+            key="mobile-drawer"
+            initial={{ x: "-100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "-100%" }}
+            transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
+            style={{
+              position: "fixed", top: 0, bottom: 0, left: 0, width: "270px",
+              background: sidebarBg, zIndex: 50, display: "flex", flexDirection: "column",
+              boxShadow: "4px 0 30px rgba(0,0,0,0.3)",
+            }}
+            className="lg:hidden"
+          >
+            {makeContent()}
+          </motion.aside>
         )}
       </AnimatePresence>
     </>

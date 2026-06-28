@@ -235,3 +235,15 @@ select {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* Fix mobile double-tap hover bug on close button */
+@media (hover: hover) {
+  .sidebar-close-btn:hover {
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+  }
+  .dark .sidebar-close-btn:hover {
+    background: rgba(239, 68, 68, 0.15) !important;
+    color: #ef4444 !important;
+  }
+}

@@ -114,10 +114,7 @@ function StatsCards({ tasks }) {
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "16px" }}>
-            <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: card.subColor }} />
-            <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--text-muted)" }}>Updated just now</span>
-          </div>
+
         </motion.div>
       ))}
     </motion.div>

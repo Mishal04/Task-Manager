@@ -1,23 +1,36 @@
 import { useState, useRef, useEffect } from "react";
-import { FaBell, FaMoon, FaSun, FaSearch, FaBars, FaChevronDown, FaSignOutAlt, FaTasks } from "react-icons/fa";
+import { FaBell, FaMoon, FaSun, FaSearch, FaBars, FaChevronDown, FaSignOutAlt, FaTasks, FaCheckCircle, FaCircle, FaTimes } from "react-icons/fa";
 import { useTheme } from "../../hooks/useTheme";
 import { useAuth } from "../../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 
-function Navbar({ search, setSearch, onMenuClick, activeTab, setActiveTab }) {
+function Navbar({ search, setSearch, onMenuClick, activeTab, setActiveTab, desktopSidebarOpen }) {
   const { theme, toggleTheme } = useTheme();
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   const [profileOpen, setProfileOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [bellBouncing, setBellBouncing] = useState(false);
   const [searchFocused, setSearchFocused] = useState(false);
   const profileRef = useRef(null);
+  const notifRef = useRef(null);
+
+  const [notifications, setNotifications] = useState([
+    { id: 1, text: "Task \"Design UI\" is due today", time: "2m ago", read: false, color: "#ef4444" },
+    { id: 2, text: "You completed 5 tasks this week!", time: "1h ago", read: false, color: "#10b981" },
+    { id: 3, text: "New task \"Review PR\" was added", time: "3h ago", read: true, color: "#6366f1" },
+  ]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
 
   useEffect(() => {
-    const handler = (e) => { if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false); };
+    const handler = (e) => {
+      if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
+      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
+    };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
@@ -57,7 +70,11 @@ function Navbar({ search, setSearch, onMenuClick, activeTab, setActiveTab }) {
     }}>
       {/* Left */}
       <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-        <button onClick={onMenuClick} style={{ ...iconBtnStyle, display: "none" }} className="lg:!hidden">
+        <button 
+          onClick={onMenuClick} 
+          style={iconBtnStyle} 
+          className={desktopSidebarOpen ? "lg:hidden" : ""}
+        >
           <FaBars />
         </button>
         <div>
@@ -113,19 +130,114 @@ function Navbar({ search, setSearch, onMenuClick, activeTab, setActiveTab }) {
         </motion.button>
 
         {/* Notification Bell */}
-        <button
-          style={{ ...iconBtnStyle, position: "relative" }}
-          onClick={() => { setBellBouncing(true); setTimeout(() => setBellBouncing(false), 800); }}
-          title="Notifications"
-        >
-          <motion.span animate={bellBouncing ? { rotate: [-20, 20, -20, 20, -10, 10, 0] } : {}} transition={{ duration: 0.5 }}>
-            <FaBell style={{ fontSize: "13px" }} />
-          </motion.span>
-          <span style={{
-            position: "absolute", top: "8px", right: "8px", width: "7px", height: "7px",
-            borderRadius: "50%", background: "#ef4444", boxShadow: "0 0 0 2px var(--bg-surface)"
-          }} />
-        </button>
+        <div ref={notifRef} style={{ position: "relative" }}>
+          <button
+            style={{ ...iconBtnStyle, position: "relative" }}
+            onClick={() => {
+              setBellBouncing(true);
+              setTimeout(() => setBellBouncing(false), 800);
+              setNotifOpen((o) => !o);
+            }}
+            title="Notifications"
+          >
+            <motion.span animate={bellBouncing ? { rotate: [-20, 20, -20, 20, -10, 10, 0] } : {}} transition={{ duration: 0.5 }}>
+              <FaBell style={{ fontSize: "13px" }} />
+            </motion.span>
+            {unreadCount > 0 && (
+              <span style={{
+                position: "absolute", top: "-4px", right: "-4px",
+                minWidth: "16px", height: "16px", borderRadius: "99px",
+                background: "#ef4444", color: "#fff",
+                fontSize: "9px", fontWeight: 800,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "0 3px",
+                boxShadow: "0 0 0 2px var(--bg-surface)"
+              }}>
+                {unreadCount}
+              </span>
+            )}
+          </button>
+
+          <AnimatePresence>
+            {notifOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 8, scale: 0.95 }}
+                transition={{ duration: 0.18 }}
+                style={{
+                  position: "absolute", right: 0, marginTop: "10px", width: "300px", zIndex: 50,
+                  background: theme === "dark" ? "#0d1526" : "#fff",
+                  border: `1px solid ${borderCol}`, borderRadius: "18px",
+                  boxShadow: theme === "dark"
+                    ? "0 20px 50px rgba(0,0,0,0.5), 0 0 0 1px rgba(99,102,241,0.1)"
+                    : "0 20px 50px rgba(99,102,241,0.12)",
+                  overflow: "hidden",
+                }}
+              >
+                {/* Header */}
+                <div style={{ padding: "14px 16px", borderBottom: `1px solid ${borderCol}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div>
+                    <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-primary)" }}>Notifications</div>
+                    {unreadCount > 0 && (
+                      <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>{unreadCount} unread</div>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={() => setNotifications((prev) => prev.map((n) => ({ ...n, read: true })))}
+                        style={{ fontSize: "11px", fontWeight: 600, color: "#6366f1", background: "none", border: "none", cursor: "pointer" }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
+                    <button onClick={() => setNotifOpen(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", display: "flex", padding: "2px" }}>
+                      <FaTimes style={{ fontSize: "11px" }} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* List */}
+                <div style={{ maxHeight: "260px", overflowY: "auto" }}>
+                  {notifications.length === 0 ? (
+                    <div style={{ padding: "32px", textAlign: "center", color: "var(--text-muted)", fontSize: "13px" }}>
+                      No notifications yet
+                    </div>
+                  ) : notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => setNotifications((prev) => prev.map((n) => n.id === notif.id ? { ...n, read: true } : n))}
+                      style={{
+                        padding: "12px 16px", display: "flex", alignItems: "flex-start", gap: "10px",
+                        cursor: "pointer", transition: "background 0.15s",
+                        background: notif.read ? "transparent" : (theme === "dark" ? "rgba(99,102,241,0.05)" : "rgba(99,102,241,0.04)"),
+                        borderBottom: `1px solid ${borderCol}`,
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = theme === "dark" ? "rgba(255,255,255,0.04)" : "#f8fafc"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.background = notif.read ? "transparent" : (theme === "dark" ? "rgba(99,102,241,0.05)" : "rgba(99,102,241,0.04)"); }}
+                    >
+                      <div style={{ marginTop: "3px", flexShrink: 0 }}>
+                        {notif.read
+                          ? <FaCircle style={{ fontSize: "7px", color: "var(--text-muted)" }} />
+                          : <FaCheckCircle style={{ fontSize: "12px", color: notif.color }} />}
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontSize: "12px", fontWeight: notif.read ? 500 : 700, color: "var(--text-primary)", lineHeight: 1.5 }}>
+                          {notif.text}
+                        </div>
+                        <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "3px", fontWeight: 500 }}>{notif.time}</div>
+                      </div>
+                      {!notif.read && (
+                        <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: notif.color, flexShrink: 0, marginTop: "5px" }} />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
 
         {/* Divider */}
         <div style={{ width: "1px", height: "24px", background: borderCol, flexShrink: 0 }} className="hidden sm:block" />

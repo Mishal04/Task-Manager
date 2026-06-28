@@ -22,7 +22,7 @@ function Dashboard() {
   const { theme } = useTheme();
 
   const [activeTab, setActiveTab] = useState("dashboard");
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => typeof window !== "undefined" ? window.innerWidth >= 1024 : true);
   const [loadingTasks, setLoadingTasks] = useState(true);
 
   const [tasks, setTasks] = useState([]);
@@ -159,10 +159,20 @@ function Dashboard() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh", background: baseBg, transition: "background 0.4s ease" }}>
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} isOpen={mobileSidebarOpen} onClose={() => setMobileSidebarOpen(false)} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-        <Navbar search={search} setSearch={setSearch} activeTab={activeTab} setActiveTab={setActiveTab} onMenuClick={() => setMobileSidebarOpen(true)} />
+        <Navbar
+          search={search} setSearch={setSearch}
+          activeTab={activeTab} setActiveTab={setActiveTab}
+          desktopSidebarOpen={sidebarOpen}
+          onMenuClick={() => setSidebarOpen(true)}
+        />
 
         <main style={{ flex: 1, padding: "28px", maxWidth: "1400px", width: "100%", margin: "0 auto" }}>
           <AnimatePresence mode="wait">
